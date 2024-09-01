@@ -1,0 +1,20 @@
+services:
+  rm-robot-dev:
+    image: 009160038406.dkr.ecr.us-west-2.amazonaws.com/rm_robot:1.0.0-dev
+    container_name: rm-robot-dev
+    volumes:
+      # /your_local_dir:/shared_folder
+      # relative path is based on the location of compose.xml
+      - ../:/shared_folder
+      - /tmp/.X11-unix:/tmp/.X11-unix
+    environment:
+      # MacOS
+      # DISPLAY: "host.docker.internal:0"
+      # Ubuntu
+      DISPLAY: ":0"
+      # DISPLAY: "host.docker.internal:0"
+      # - DISPLAY=host.docker.internal:0
+      # Note: DISPLAY="host.docker.internal:0" does NOT work. Others work.
+    tty: true
+    stdin_open: true
+    command: /bin/bash
