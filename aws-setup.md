@@ -17,11 +17,12 @@ Note: after the EC2 instance stop, the public IP may be changed. You need update
 
 ## Install VNC
 ```
+export DEBIAN_FRONTEND=noninteractive
 sudo apt update
 sudo apt upgrade -y
-sudo apt install xfce4 xfce4-goodies -y
-sudo apt install x11-xserver-utils -y
-sudo apt install tightvncserver -y
+sudo apt install -y xfce4 xfce4-goodies
+sudo apt install -y x11-xserver-utils
+sudo apt install -y tightvncserver
 
 vncserver
 # input password with `gazebo`
@@ -30,7 +31,7 @@ vncserver -kill :1
 mv ~/.vnc/xstartup ~/.vnc/xstartup.back
 ```
 
-`vi ~/.vn/xstartup` with the below content
+`vi ~/.vnc/xstartup` with the below content
 
 >#!/bin/bash  
 xrdb $HOME/.Xresources  
@@ -60,9 +61,11 @@ ExecStop=/usr/bin/vncserver -kill :1
 WantedBy=multi-user.target
 </blockquote>
 
-`sudo systemctl daemon-reload`
-
-`sudo systemctl enable vncserver@1.service`
+```
+sudo systemctl daemon-reload
+sudo systemctl enable vncserver@1.service
+sudo systemctl start vncserver@1.service
+```
 
 ### common vnc command
 - start vnc server
@@ -111,3 +114,61 @@ sudo systemctl restart apache2
 `nohup /usr/share/novnc/utils/launch.sh --vnc localhost:5901 &> novnc.log 2>&1`
 
 Then, open the http://ec2-35-92-34-51.us-west-2.compute.amazonaws.com/novnc/vnc.html with your browser.
+
+## Install ROS2
+[ROS humble](https://docs.ros.org/en/humble/Installation.html)
+
+### Set Locale
+```
+locale  # check for UTF-8
+
+sudo apt update && sudo apt install locales
+sudo locale-gen en_US en_US.UTF-8
+sudo update-locale LC_ALL=en_US.UTF-8 LANG=en_US.UTF-8
+export LANG=en_US.UTF-8
+
+locale  # verify settings
+```
+### Setup Sources
+```
+sudo apt install -y software-properties-common
+sudo add-apt-repository universe
+sudo apt update && sudo apt install -y curl
+sudo curl -sSL https://raw.githubusercontent.com/ros/rosdistro/master/ros.key -o /usr/share/keyrings/ros-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/ros-archive-keyring.gpg] http://packages.ros.org/ros2/ubuntu $(. /etc/os-release && echo $UBUNTU_CODENAME) main" | sudo tee /etc/apt/sources.list.d/ros2.list > /dev/null
+```
+### Install ROS2 packages
+```
+sudo apt update
+sudo apt upgrade
+sudo apt install -y ros-humble-desktop
+sudo apt install -y ros-dev-tools
+
+echo -e "\nsource /opt/ros/humble/setup.bash" >> ~/.bashrc
+```
+
+## Install Gazebo
+Ref [Compatible ROS and Gazebo](https://gazebosim.org/docs/harmonic/ros_installation/#summary-of-compatible-ros-and-gazebo-combinations) to install [GZ Fortress](https://gazebosim.org/docs/fortress/install_ubuntu/) (LTS).
+```
+sudo apt update
+sudo apt install -y lsb-release gnupg
+sudo curl https://packages.osrfoundation.org/gazebo.gpg --output /usr/share/keyrings/pkgs-osrf-archive-keyring.gpg
+echo "deb [arch=$(dpkg --print-architecture) signed-by=/usr/share/keyrings/pkgs-osrf-archive-keyring.gpg] http://packages.osrfoundation.org/gazebo/ubuntu-stable $(lsb_release -cs) main" | sudo tee /etc/apt/sources.list.d/gazebo-stable.list > /dev/null
+sudo apt update
+sudo apt install -y ignition-fortress
+```
+
+Command to run: `ign gazebo`
+
+## Install OpenGL
+[AMD driver](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-amd-driver.html)
+[Nvidia driver](https://docs.aws.amazon.com/AWSEC2/latest/UserGuide/install-nvidia-driver.html#nvidia-GRID-driver)
+
+```
+sudo apt install -y libgl1-mesa-dev libglu1-mesa-dev mesa-utils
+
+```
+
+## Ref
+
+https://jeremypedersen.com/posts/2024-07-16-ubuntu-22-dcv-desktop/
